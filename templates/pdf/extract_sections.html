@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_head %}
+{% block title %}Pisah per Bagian{% endblock %}
+{% block content %}
+{{ page_head('.PDF', 'Pisah per Bagian', 'split') }}
+{% include "pdf/_tabs.html" %}
+<p>Cocok buat pisah PDF besar (skripsi, laporan) jadi beberapa file sekaligus berdasarkan rentang halaman — mis. Abstrak, Bab 1, Bab 2, dst. Tidak pakai preview per-halaman (PDF besar bisa lambat kalau di-render semua) — cukup ketik rentang halamannya.</p>
+<form method="post" enctype="multipart/form-data" data-loading-text="Memisah PDF per bagian…">
+  <label>File PDF</label>
+  <input type="file" name="pdf" accept=".pdf" required>
+
+  <label for="sections">Daftar bagian (1 baris = 1 bagian, format "Nama: halaman_awal-halaman_akhir")</label>
+  <textarea id="sections" name="sections" rows="8" placeholder="Abstrak: 1
+Bab 1: 5-20
+Bab 2: 21-45
+Bab 3: 46-70
+Bab 4: 71-90
+Daftar Pustaka: 95-98" required></textarea>
+  <p class="hint">Satu halaman saja boleh cuma diisi angkanya, mis. "Abstrak: 1". Tanpa nama juga boleh (otomatis dinamai "Bagian 1", "Bagian 2", dst).</p>
+
+  <label for="filename">Nama file .zip (opsional)</label>
+  <input type="text" id="filename" name="filename" placeholder="Kosongkan untuk nama otomatis">
+
+  <button type="submit">Pisah PDF</button>
+</form>
+{% include "pdf/_file_list.html" %}
+{% endblock %}

@@ -66,6 +66,47 @@ def extract_pages(input_path: Path, output_path: Path, page_numbers: List[int]) 
     return count
 
 
+def parse_page_sections(text: str) -> List[Tuple[str, List[int]]]:
+    """Parse lines like 'Label: start-end' (or 'Label: N', or a bare range/number
+    with no label) into a list of (label, page_numbers). Raises ValueError on a
+    malformed line, naming the offending line number."""
+    sections: List[Tuple[str, List[int]]] = []
+    for i, raw_line in enumerate(text.splitlines(), start=1):
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        if ":" in line:
+            label, _, range_part = line.partition(":")
+            label = label.strip()
+        else:
+            label, range_part = "", line
+        range_part = range_part.strip()
+        if not label:
+            label = f"Bagian {len(sections) + 1}"
+
+        if "-" in range_part:
+            start_str, _, end_str = range_part.partition("-")
+            try:
+                start, end = int(start_str.strip()), int(end_str.strip())
+            except ValueError:
+                raise ValueError(f"Baris {i} tidak valid: '{line}'")
+            if start > end:
+                raise ValueError(f"Baris {i}: halaman awal ({start}) lebih besar dari akhir ({end})")
+            pages = list(range(start, end + 1))
+        else:
+            try:
+                pages = [int(range_part)]
+            except ValueError:
+                raise ValueError(f"Baris {i} tidak valid: '{line}'")
+
+        sections.append((label, pages))
+
+    if not sections:
+        raise ValueError("Isi minimal 1 baris rentang halaman.")
+    return sections
+
+
 def split_to_single_pages(input_path: Path, output_dir: Path) -> List[Path]:
     """Split PDF into single-page PDFs. Returns list of output paths."""
     return split_pdf(input_path, output_dir, pages_per_file=1)

@@ -387,6 +387,50 @@ def pdf_extract():
     return render_template("pdf/extract.html", picker={"pdf_b64": pdf_b64, "pdf_name": f.filename, "pages": pages})
 
 
+@app.route("/pdf-utils/extract-sections", methods=["GET", "POST"])
+def pdf_extract_sections():
+    if request.method == "GET":
+        return render_template("pdf/extract_sections.html")
+
+    f = request.files.get("pdf")
+    sections_raw = request.form.get("sections", "")
+    if not f or not f.filename:
+        flash("Pilih file PDF.")
+        return redirect(url_for("pdf_extract_sections"))
+
+    try:
+        sections = pdf_utils.parse_page_sections(sections_raw)
+    except ValueError as e:
+        flash(str(e))
+        return redirect(url_for("pdf_extract_sections"))
+
+    tmpdir = tempfile.TemporaryDirectory()
+    in_path = Path(tmpdir.name) / f.filename
+    f.save(in_path)
+
+    seen_stems: dict[str, int] = {}
+    outputs = []
+    try:
+        for label, page_numbers in sections:
+            stem = slugify(label)
+            seen_stems[stem] = seen_stems.get(stem, 0) + 1
+            n = seen_stems[stem]
+            unique_stem = stem if n == 1 else f"{stem}-{n}"
+            out_path = Path(tmpdir.name) / f"{unique_stem}.pdf"
+            pdf_utils.extract_pages(in_path, out_path, page_numbers)
+            outputs.append(out_path)
+    except ValueError as e:
+        tmpdir.cleanup()
+        flash(str(e))
+        return redirect(url_for("pdf_extract_sections"))
+
+    items = as_items(outputs)
+    default_base = f"{in_path.stem}_bagian"
+    zip_result = make_zip(outputs, tmpdir, output_filename(request.form.get("filename", ""), default_base, "zip"))
+    tmpdir.cleanup()
+    return render_template("pdf/extract_sections.html", result={"files": items, "zip": zip_result})
+
+
 @app.route("/pdf-utils/rotate", methods=["GET", "POST"])
 def pdf_rotate():
     if request.method == "GET":
