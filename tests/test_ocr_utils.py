@@ -1,3 +1,4 @@
+import shutil
 import sys
 import types
 import unittest
@@ -8,10 +9,12 @@ from tools.ocr_utils import ocr_available, ocr_to_searchable_pdf
 
 
 class OcrAvailableTests(unittest.TestCase):
-    def test_false_when_tesseract_or_ghostscript_missing(self):
-        # Real (unmocked) check: neither tesseract nor ghostscript is installed
-        # in this environment, so this must reflect that honestly.
-        self.assertFalse(ocr_available())
+    def test_matches_real_binary_presence_in_this_environment(self):
+        # Real (unmocked) check: reflects whatever is actually installed here,
+        # rather than hardcoding an assumption that goes stale when the
+        # environment changes (e.g. after `brew install tesseract ghostscript`).
+        expected = shutil.which("tesseract") is not None and shutil.which("gs") is not None
+        self.assertEqual(ocr_available(), expected)
 
     @patch("tools.ocr_utils.shutil.which", return_value="/usr/bin/x")
     def test_true_when_both_found(self, mock_which):
