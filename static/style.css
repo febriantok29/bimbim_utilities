@@ -83,27 +83,101 @@ header {
 .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; }
 .brand-tag { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); }
 
-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  margin-left: auto;
-}
+/* ---------- Tools dropdown ---------- */
+.nav-menu { margin-left: auto; position: relative; }
 
-nav a {
+.nav-menu summary {
   display: flex;
   align-items: center;
   gap: 6px;
-  text-decoration: none;
-  color: var(--text-muted);
+  list-style: none;
+  cursor: pointer;
   font-size: 0.85rem;
-  padding: 4px 0;
-  border-bottom: 2px solid transparent;
+  font-weight: 600;
+  color: var(--text);
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
 }
 
-nav a svg { width: 15px; height: 15px; }
-nav a:hover { color: var(--text); }
-nav a.active { color: var(--text); border-bottom-color: var(--accent); }
+.nav-menu summary::-webkit-details-marker { display: none; }
+.nav-menu summary svg { width: 15px; height: 15px; color: var(--accent); }
+.nav-menu summary:hover { border-color: var(--accent); }
+.nav-menu[open] summary { border-color: var(--accent); }
+
+.nav-menu-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.nav-menu-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: min(560px, 90vw);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+  padding: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 20px;
+  z-index: 20;
+}
+
+@media (max-width: 480px) {
+  .nav-menu-panel { grid-template-columns: 1fr; width: 92vw; }
+}
+
+.nav-group-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 6px;
+}
+
+.nav-group a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  margin: 0 -8px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 0.85rem;
+  border-radius: 4px;
+}
+
+.nav-group a svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--text-muted); }
+.nav-group a:hover { background: var(--bg); }
+.nav-group a.active { color: var(--accent); font-weight: 600; }
+.nav-group a.active svg { color: var(--accent); }
+
+/* ---------- Tool search + sections ---------- */
+.tool-search {
+  margin-top: 18px;
+  max-width: 360px;
+}
+
+.tool-section { margin-top: 30px; }
+.tool-section:first-of-type { margin-top: 22px; }
+
+.tool-section-title {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
 
 /* ---------- Tool grid ---------- */
 .tool-grid {
@@ -163,6 +237,18 @@ nav a.active { color: var(--text); border-bottom-color: var(--accent); }
 
 .tabs a:hover { color: var(--text); border-color: var(--text-muted); }
 .tabs a.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+
+.tabs-group-label {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.tabs-group-label:not(:first-child) { margin-left: 6px; }
 
 /* ---------- Forms ---------- */
 fieldset {

@@ -4,18 +4,65 @@
 {% block content %}
 <h1>bimbim utilities</h1>
 <p>Kumpulan tool file sehari-hari, dipakai langsung dari browser.</p>
-<div class="tool-grid">
-  {{ tool_card(url_for('qr_page'), '.QR', 'QR Code Generator', 'Bikin QR dari teks/URL, bisa banyak sekaligus.', 'qr') }}
-  {{ tool_card(url_for('csv_merger_page'), '.CSV', 'CSV Merger', 'Gabung & rapikan mutasi CSV jadi 1 file.', 'csv') }}
-  {{ tool_card(url_for('image_converter_page'), '.IMG', 'Image Converter', 'Convert format gambar secara batch.', 'image') }}
-  {{ tool_card(url_for('envelope_label_page'), '.LBL', 'Label Amplop', 'Cetak label amplop, pilih ukuran atau custom.', 'label') }}
-  {{ tool_card(url_for('pdf_utils_page'), '.PDF', 'PDF Utils', 'Merge, split, rotate, dan lainnya.', 'pdf') }}
-  {{ tool_card(url_for('remove_bg_page'), '.BG', 'Remove Background', 'Ganti warna background gambar.', 'layers') }}
-  {{ tool_card(url_for('text_to_spreadsheet_page'), '.XLS', 'Text ke Spreadsheet', 'Parse teks transaksi jadi CSV/XLSX.', 'sheet') }}
-  {{ tool_card(url_for('webm_to_mp4_page'), '.MP4', 'Webm ke MP4', 'Convert video webm ke mp4 lewat ffmpeg.', 'film') }}
-  {{ tool_card(url_for('video_converter_page'), '.VID', 'Video Converter', 'Convert video antar format bebas (MP4/MOV/MKV/WEBM/AVI/FLV/WMV), bisa banyak sekaligus.', 'film') }}
-  {{ tool_card(url_for('drive_downloader_page'), '.GDR', 'Google Drive Bulk Downloader', 'Paste sel berisi link Drive, download & zip semua sekaligus.', 'drive') }}
-  {{ tool_card(url_for('flutter_cleanup_page'), '.CLN', 'Flutter Build Cleanup', 'Bersihkan build/.dart_tool/Pods dari semua proyek Flutter di suatu folder.', 'trash') }}
-  {{ tool_card(url_for('ocr_page'), '.OCR', 'OCR ke PDF Searchable', 'Scan/foto dokumen jadi PDF yang teksnya bisa di-search & di-copy.', 'text') }}
+
+<input type="search" id="tool-search" class="tool-search" placeholder="Cari tool… (mis. &quot;pdf&quot;, &quot;video&quot;, &quot;qr&quot;)" autocomplete="off">
+<p class="hint" id="tool-search-empty" hidden>Gak ada tool yang cocok. Coba kata kunci lain.</p>
+
+<div class="tool-section" data-tool-section>
+  <h2 class="tool-section-title">Gambar &amp; Video</h2>
+  <div class="tool-grid">
+    {{ tool_card(url_for('image_converter_page'), '.IMG', 'Image Converter', 'Convert format gambar secara batch.', 'image') }}
+    {{ tool_card(url_for('remove_bg_page'), '.BG', 'Remove Background', 'Ganti warna background gambar.', 'layers') }}
+    {{ tool_card(url_for('webm_to_mp4_page'), '.MP4', 'Webm ke MP4', 'Convert video webm ke mp4 lewat ffmpeg.', 'film') }}
+    {{ tool_card(url_for('video_converter_page'), '.VID', 'Video Converter', 'Convert video antar format bebas (MP4/MOV/MKV/WEBM/AVI/FLV/WMV), bisa banyak sekaligus.', 'film') }}
+  </div>
 </div>
+
+<div class="tool-section" data-tool-section>
+  <h2 class="tool-section-title">PDF &amp; Dokumen</h2>
+  <div class="tool-grid">
+    {{ tool_card(url_for('pdf_utils_page'), '.PDF', 'PDF Utils', 'Merge, split, rotate, dan lainnya.', 'pdf') }}
+    {{ tool_card(url_for('ocr_page'), '.OCR', 'OCR ke PDF Searchable', 'Scan/foto dokumen jadi PDF yang teksnya bisa di-search & di-copy.', 'text') }}
+    {{ tool_card(url_for('envelope_label_page'), '.LBL', 'Label Amplop', 'Cetak label amplop, pilih ukuran atau custom.', 'label') }}
+  </div>
+</div>
+
+<div class="tool-section" data-tool-section>
+  <h2 class="tool-section-title">Data &amp; Keuangan</h2>
+  <div class="tool-grid">
+    {{ tool_card(url_for('csv_merger_page'), '.CSV', 'CSV Merger', 'Gabung & rapikan mutasi CSV jadi 1 file.', 'csv') }}
+    {{ tool_card(url_for('text_to_spreadsheet_page'), '.XLS', 'Text ke Spreadsheet', 'Parse teks transaksi jadi CSV/XLSX.', 'sheet') }}
+  </div>
+</div>
+
+<div class="tool-section" data-tool-section>
+  <h2 class="tool-section-title">Utilitas Lain</h2>
+  <div class="tool-grid">
+    {{ tool_card(url_for('qr_page'), '.QR', 'QR Code Generator', 'Bikin QR dari teks/URL, bisa banyak sekaligus.', 'qr') }}
+    {{ tool_card(url_for('drive_downloader_page'), '.GDR', 'Google Drive Bulk Downloader', 'Paste sel berisi link Drive, download & zip semua sekaligus.', 'drive') }}
+    {{ tool_card(url_for('flutter_cleanup_page'), '.CLN', 'Flutter Build Cleanup', 'Bersihkan build/.dart_tool/Pods dari semua proyek Flutter di suatu folder.', 'trash') }}
+  </div>
+</div>
+
+<script>
+const searchInput = document.querySelector('#tool-search');
+const sections = document.querySelectorAll('[data-tool-section]');
+const emptyMsg = document.querySelector('#tool-search-empty');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  let anyVisible = false;
+  sections.forEach((section) => {
+    let sectionHasMatch = false;
+    section.querySelectorAll('.tool-card').forEach((card) => {
+      const match = !q || card.textContent.toLowerCase().includes(q);
+      card.hidden = !match;
+      if (match) sectionHasMatch = true;
+    });
+    section.hidden = !sectionHasMatch;
+    if (sectionHasMatch) anyVisible = true;
+  });
+  emptyMsg.hidden = anyVisible;
+});
+</script>
 {% endblock %}
