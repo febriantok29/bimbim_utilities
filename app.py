@@ -14,6 +14,7 @@ from tools import (
     csv_merger,
     drive_downloader,
     envelope_label,
+    flutter_cache_cleanup,
     flutter_cleanup,
     image_converter,
     ocr_utils,
@@ -1067,6 +1068,137 @@ def flutter_cleanup_page():
         root=str(root),
         preview={"projects": projects, "grand_total": grand_total},
     )
+
+
+# ---------------- Flutter package cache cleanup ----------------
+def parse_root_dir(raw: str) -> Path | None:
+    try:
+        root = Path(raw.strip()).expanduser().resolve()
+        return root if root.is_dir() else None
+    except (ValueError, OSError):
+        return None
+
+
+def default_cache_root() -> Path:
+    work = Path.home() / "Data" / "Projects" / "Work"
+    return work if work.is_dir() else Path.home() / "Data"
+
+
+def cache_summary_view() -> dict:
+    summary = flutter_cache_cleanup.cache_summary()
+    summary["total_size_h"] = human_size(summary["total_size"])
+    for section in summary["sections"]:
+        section["size_h"] = human_size(section["size"])
+    return summary
+
+
+def gc_preview_view(gc: dict, unregistered: list[Path]) -> dict:
+    hosted = [
+        {"name": name, "count": len(versions), "versions": ", ".join(sorted(versions))}
+        for name, versions in gc["hosted"].items()
+    ]
+    hosted.sort(key=lambda h: (-h["count"], h["name"]))
+    git_checkouts = [
+        {"name": name, "count": len(shas), "shas": ", ".join(sorted(shas))}
+        for name, shas in gc["git_checkouts"].items()
+    ]
+    git_checkouts.sort(key=lambda g: (-g["count"], g["name"]))
+    return {
+        "recover": gc["recover"],
+        "total_size_h": human_size(gc.get("total_bytes", 0)),
+        "entry_count": len(gc["entries"]),
+        "hosted": hosted,
+        "hosted_version_count": sum(h["count"] for h in hosted),
+        "git_checkouts": git_checkouts,
+        "git_checkout_count": sum(g["count"] for g in git_checkouts),
+        "git_mirrors": gc["git_mirrors"],
+        "largest_hosted": [
+            {"name": h["name"], "size_h": human_size(h["size"])} for h in gc.get("largest_hosted", [])
+        ],
+        "active_projects": gc["active_projects"],
+        "unregistered": [str(p) for p in unregistered],
+    }
+
+
+@app.route("/flutter-cache-cleanup", methods=["GET", "POST"])
+def flutter_cache_cleanup_page():
+    if request.method == "GET":
+        return render_template(
+            "flutter_cache_cleanup.html",
+            root=str(default_cache_root()),
+            summary=cache_summary_view(),
+        )
+
+    root = parse_root_dir(request.form.get("root", ""))
+    if root is None:
+        flash("Path folder tidak valid.")
+        return redirect(url_for("flutter_cache_cleanup_page"))
+
+    confirming = request.form.get("stage") == "confirm"
+    gc = flutter_cache_cleanup.preview_gc(with_sizes=not confirming)
+    if not gc["ok"]:
+        flash(f"Gagal membaca pratinjau gc: {gc['error']}")
+        return redirect(url_for("flutter_cache_cleanup_page"))
+
+    projects = flutter_cache_cleanup.list_projects(root)
+    unregistered = flutter_cache_cleanup.find_unregistered(projects, gc["active_projects"])
+
+    if confirming:
+        if unregistered and not request.form.get("force_unregistered"):
+            flash("Masih ada proyek yang belum terdaftar, hapus dibatalkan.")
+            return redirect(url_for("flutter_cache_cleanup_page"))
+        if not request.form.get("understand"):
+            flash("Centang konfirmasi dulu sebelum menghapus.")
+            return redirect(url_for("flutter_cache_cleanup_page"))
+
+        outcome = flutter_cache_cleanup.run_gc(collect_recent=bool(request.form.get("collect_recent")))
+        if not outcome["ok"]:
+            flash(f"Gagal menjalankan gc: {outcome['error']}")
+            return redirect(url_for("flutter_cache_cleanup_page"))
+        result = {
+            "freed": human_size(outcome["freed"]),
+            "before": human_size(outcome["before"]),
+            "after": human_size(outcome["after"]),
+        }
+        return render_template(
+            "flutter_cache_cleanup.html",
+            root=str(root),
+            summary=cache_summary_view(),
+            result=result,
+        )
+
+    return render_template(
+        "flutter_cache_cleanup.html",
+        root=str(root),
+        summary=cache_summary_view(),
+        preview=gc_preview_view(gc, unregistered),
+        project_count=len(projects),
+    )
+
+
+@app.route("/flutter-cache-cleanup/register", methods=["POST"])
+def flutter_cache_cleanup_register():
+    from flask import jsonify
+
+    root = parse_root_dir(request.form.get("root", ""))
+    if root is None:
+        return jsonify({"error": "Path folder tidak valid."}), 400
+
+    projects = flutter_cache_cleanup.list_projects(root)
+    if not projects:
+        return jsonify({"error": "Tidak ada proyek Flutter/Dart di folder itu."}), 400
+
+    started = flutter_cache_cleanup.start_registration(projects, bool(request.form.get("allow_download")))
+    if not started:
+        return jsonify({"error": "Pendaftaran lain masih berjalan."}), 409
+    return jsonify({"started": True, "total": len(projects)})
+
+
+@app.route("/flutter-cache-cleanup/register/status")
+def flutter_cache_cleanup_register_status():
+    from flask import jsonify
+
+    return jsonify(flutter_cache_cleanup.registration_status())
 
 
 if __name__ == "__main__":
