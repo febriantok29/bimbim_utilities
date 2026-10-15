@@ -13,20 +13,39 @@
     <span class="brand-name">bimbim</span>
     <span class="brand-tag mono">.utilities</span>
   </a>
-  <nav>
-    <a href="{{ url_for('qr_page') }}" class="{{ 'active' if request.endpoint == 'qr_page' }}">{{ icon('qr') }} QR</a>
-    <a href="{{ url_for('csv_merger_page') }}" class="{{ 'active' if request.endpoint == 'csv_merger_page' }}">{{ icon('csv') }} CSV Merger</a>
-    <a href="{{ url_for('image_converter_page') }}" class="{{ 'active' if request.endpoint == 'image_converter_page' }}">{{ icon('image') }} Image Converter</a>
-    <a href="{{ url_for('envelope_label_page') }}" class="{{ 'active' if request.endpoint == 'envelope_label_page' }}">{{ icon('label') }} Label Amplop</a>
-    <a href="{{ url_for('pdf_utils_page') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('pdf_') }}">{{ icon('pdf') }} PDF Utils</a>
-    <a href="{{ url_for('remove_bg_page') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('remove_bg') }}">{{ icon('layers') }} Remove BG</a>
-    <a href="{{ url_for('text_to_spreadsheet_page') }}" class="{{ 'active' if request.endpoint == 'text_to_spreadsheet_page' }}">{{ icon('sheet') }} Spreadsheet</a>
-    <a href="{{ url_for('webm_to_mp4_page') }}" class="{{ 'active' if request.endpoint == 'webm_to_mp4_page' }}">{{ icon('film') }} Webm→Mp4</a>
-    <a href="{{ url_for('video_converter_page') }}" class="{{ 'active' if request.endpoint == 'video_converter_page' }}">{{ icon('film') }} Video Converter</a>
-    <a href="{{ url_for('drive_downloader_page') }}" class="{{ 'active' if request.endpoint == 'drive_downloader_page' }}">{{ icon('drive') }} Drive Downloader</a>
-    <a href="{{ url_for('flutter_cleanup_page') }}" class="{{ 'active' if request.endpoint == 'flutter_cleanup_page' }}">{{ icon('trash') }} Flutter Cleanup</a>
-    <a href="{{ url_for('ocr_page') }}" class="{{ 'active' if request.endpoint == 'ocr_page' }}">{{ icon('text') }} OCR</a>
-  </nav>
+  <details class="nav-menu">
+    <summary>
+      {{ icon('grid') }} Tools
+      {% if request.endpoint != 'index' %}<span class="nav-menu-dot"></span>{% endif %}
+    </summary>
+    <div class="nav-menu-panel">
+      <div class="nav-group">
+        <h3 class="nav-group-title">Gambar &amp; Video</h3>
+        <a href="{{ url_for('image_converter_page') }}" class="{{ 'active' if request.endpoint == 'image_converter_page' }}">{{ icon('image') }} Image Converter</a>
+        <a href="{{ url_for('remove_bg_page') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('remove_bg') }}">{{ icon('layers') }} Remove Background</a>
+        <a href="{{ url_for('webm_to_mp4_page') }}" class="{{ 'active' if request.endpoint == 'webm_to_mp4_page' }}">{{ icon('film') }} Webm→Mp4</a>
+        <a href="{{ url_for('video_converter_page') }}" class="{{ 'active' if request.endpoint == 'video_converter_page' }}">{{ icon('film') }} Video Converter</a>
+      </div>
+      <div class="nav-group">
+        <h3 class="nav-group-title">PDF &amp; Dokumen</h3>
+        <a href="{{ url_for('pdf_utils_page') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('pdf_') }}">{{ icon('pdf') }} PDF Utils</a>
+        <a href="{{ url_for('ocr_page') }}" class="{{ 'active' if request.endpoint == 'ocr_page' }}">{{ icon('text') }} OCR</a>
+        <a href="{{ url_for('envelope_label_page') }}" class="{{ 'active' if request.endpoint == 'envelope_label_page' }}">{{ icon('label') }} Label Amplop</a>
+      </div>
+      <div class="nav-group">
+        <h3 class="nav-group-title">Data &amp; Keuangan</h3>
+        <a href="{{ url_for('csv_merger_page') }}" class="{{ 'active' if request.endpoint == 'csv_merger_page' }}">{{ icon('csv') }} CSV Merger</a>
+        <a href="{{ url_for('text_to_spreadsheet_page') }}" class="{{ 'active' if request.endpoint == 'text_to_spreadsheet_page' }}">{{ icon('sheet') }} Text ke Spreadsheet</a>
+      </div>
+      <div class="nav-group">
+        <h3 class="nav-group-title">Utilitas Lain</h3>
+        <a href="{{ url_for('qr_page') }}" class="{{ 'active' if request.endpoint == 'qr_page' }}">{{ icon('qr') }} QR Code Generator</a>
+        <a href="{{ url_for('drive_downloader_page') }}" class="{{ 'active' if request.endpoint == 'drive_downloader_page' }}">{{ icon('drive') }} Drive Downloader</a>
+        <a href="{{ url_for('flutter_cleanup_page') }}" class="{{ 'active' if request.endpoint == 'flutter_cleanup_page' }}">{{ icon('trash') }} Flutter Cleanup</a>
+        <a href="{{ url_for('flutter_cache_cleanup_page') }}" class="{{ 'active' if request.endpoint == 'flutter_cache_cleanup_page' }}">{{ icon('trash') }} Flutter Package Cache</a>
+      </div>
+    </div>
+  </details>
 </header>
 <main>
   {% with messages = get_flashed_messages() %}
@@ -54,6 +73,12 @@ document.addEventListener('submit', (e) => {
   document.querySelector('#loading-text').textContent = form.dataset.loadingText || 'Memproses…';
   overlay.hidden = false;
   form.querySelectorAll('button[type="submit"], button:not([type])').forEach((b) => b.disabled = true);
+});
+
+document.querySelectorAll('.nav-menu').forEach((menu) => {
+  document.addEventListener('click', (e) => {
+    if (menu.open && !menu.contains(e.target)) menu.open = false;
+  });
 });
 </script>
 </body>
