@@ -9,6 +9,12 @@ port_busy() {
 }
 
 # --- venv ---
+# venv nyimpen path absolut; kalau folder project dipindah, venv lama rusak (pip/python nggak ketemu)
+if [ -d .venv ] && ! grep -q "VIRTUAL_ENV=\"$PWD/.venv\"" .venv/bin/activate; then
+  echo "Virtualenv lama menunjuk ke lokasi lain (folder dipindah), bikin ulang..."
+  rm -rf .venv
+fi
+
 if [ ! -d .venv ]; then
   echo "Belum ada virtualenv, bikin dulu..."
   if ! python3 -m venv .venv; then
@@ -22,7 +28,7 @@ source .venv/bin/activate
 # --- install deps, dengan retry kalau gagal ---
 while true; do
   echo "Install dependencies..."
-  if pip install -q -r requirements.txt; then
+  if python -m pip install -q -r requirements.txt; then
     break
   fi
   echo ""

@@ -3,6 +3,7 @@
   <a href="{{ url_for('pdf_merge') }}" class="{{ 'active' if request.endpoint == 'pdf_merge' }}">Gabung PDF</a>
   <a href="{{ url_for('pdf_split') }}" class="{{ 'active' if request.endpoint == 'pdf_split' }}">Pecah PDF</a>
   <a href="{{ url_for('pdf_extract') }}" class="{{ 'active' if request.endpoint == 'pdf_extract' }}">Ambil Halaman</a>
+  <a href="{{ url_for('pdf_extract_sections') }}" class="{{ 'active' if request.endpoint == 'pdf_extract_sections' }}">Pisah per Bagian</a>
   <a href="{{ url_for('pdf_rotate') }}" class="{{ 'active' if request.endpoint == 'pdf_rotate' }}">Putar Halaman</a>
   <a href="{{ url_for('pdf_delete') }}" class="{{ 'active' if request.endpoint == 'pdf_delete' }}">Hapus Halaman</a>
   <span class="tabs-group-label">Konversi</span>
